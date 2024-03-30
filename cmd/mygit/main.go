@@ -3,38 +3,39 @@ package main
 import (
 	"fmt"
 	// Uncomment this block to pass the first stage!
-	 "os"
+	// "flag"
+	"os"
 )
 
 // Usage: your_git.sh <command> <arg1> <arg2> ...
 func main() {
 	// You can use print statements as follows for debugging, they'll be visible when running tests.
-	fmt.Println("Logs from your program will appear here!")
+	// fmt.Println("Logs from your program will appear here!")
 
 	// Uncomment this block to pass the first stage!
 	//
-	 if len(os.Args) < 2 {
-	 	fmt.Fprintf(os.Stderr, "usage: mygit <command> [<args>...]\n")
-	 	os.Exit(1)
-	 }
-	
-	 switch command := os.Args[1]; command {
-	 case "init":
-	 	for _, dir := range []string{".git", ".git/objects", ".git/refs"} {
-	 		if err := os.MkdirAll(dir, 0755); err != nil {
-	 			fmt.Fprintf(os.Stderr, "Error creating directory: %s\n", err)
-	 		}
-	 	}
-	
-	 	headFileContents := []byte("ref: refs/heads/main\n")
-	 	if err := os.WriteFile(".git/HEAD", headFileContents, 0644); err != nil {
-	 		fmt.Fprintf(os.Stderr, "Error writing file: %s\n", err)
-	 	}
-	
-	 	fmt.Println("Initialized git directory")
-	
-	 default:
-	 	fmt.Fprintf(os.Stderr, "Unknown command %s\n", command)
-	 	os.Exit(1)
-	 }
+	if len(os.Args) < 2 {
+		fmt.Fprintf(os.Stderr, "usage: mygit <command> [<args>...]\n")
+		os.Exit(1)
+	}
+	subcommand, err := NewSubCommand(os.Args[1], os.Args[1:])
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
+	err = subcommand.Run()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\nUsage: %v\n", err, subcommand.Usage())
+		os.Exit(1)
+	}
+
+	// pprint := flag.Bool("p", true, "Pretty print the file contents")
+	// objType := flag.Bool("t", false, "Only print the object type")
+	// objSize := flag.Bool("s", false, "Only print the object size")
+	// exitWith0 := flag.Bool("e", false, "Exit with status code 0 is file is not malformed")
+	// flag.Parse()
+
+	// objName := os.Args[1]
+	// fmt.Printf("%v, %v, %v,%v, %v\n", objName, *pprint, *objType, *objSize, *exitWith0)
+
 }
