@@ -1,10 +1,16 @@
 package main
 
 import (
-	"bufio"
+	// "bufio"
+	"bytes"
 	"compress/zlib"
+	"crypto/sha1"
 	"flag"
 	"fmt"
+	"io"
+
+	// "strconv"
+	"strings"
 
 	// "io"
 	"os"
@@ -85,31 +91,15 @@ func (c *Catfile) Run() error {
 	if err != nil {
 		return err
 	}
-	scanner := bufio.NewScanner(r)
-	scanner.Split(bufio.ScanBytes)
-	// extract header and size
-	// Looks like doing a lot to do simple thing
-	var fileType []byte
-	var size []byte
-	startedSize := false
-	for scanner.Scan() {
-		scanByte := scanner.Bytes()[0]
-		if scanByte == 0 {
-			break
-		}
-		if scanByte == ' ' {
-			startedSize = true
-			continue
-		}
-		if startedSize {
-			startedSize = true
-			size = append(size, scanByte)
-		} else {
-			fileType = append(fileType, scanByte)
-		}
-	}
+	data, _ := io.ReadAll(r)
+	dataStr := string(data)
+	objTypeLen := strings.IndexByte(dataStr, ' ')
+	sizeLen := strings.IndexByte(dataStr, 0)
+	objType := dataStr[:objTypeLen]
+	size := dataStr[objTypeLen+1 : sizeLen]
+	body := dataStr[sizeLen+1:]
 	if c.objType {
-		fmt.Print(string(fileType))
+		fmt.Print(string(objType))
 		return nil
 	}
 	if c.objSize {
@@ -119,18 +109,117 @@ func (c *Catfile) Run() error {
 	if c.exitWith0 {
 		os.Exit(0)
 	}
-
-	// print data
-	for scanner.Scan() {
-		fmt.Print(scanner.Text())
-	}
-
+	fmt.Print(body)
 	r.Close()
 
 	return nil
+
+	// short version
+	// var decompressed bytes.Buffer
+	// decompressed.ReadFrom(r)
+	// parts := bytes.SplitN(decompressed.Bytes(), []byte{'\x00'}, 2)
+
+	// Long implementation may come handy for future reference
+	// scanner := bufio.NewScanner(r)
+	// scanner.Split(bufio.ScanBytes)
+	// // extract header and size
+	// // Looks like doing a lot to do simple thing
+	// var fileType []byte
+	// var size []byte
+	// startedSize := false
+	// for scanner.Scan() {
+	// 	scanByte := scanner.Bytes()[0]
+	// 	if scanByte == 0 {
+	// 		break
+	// 	}
+	// 	if scanByte == ' ' {
+	// 		startedSize = true
+	// 		continue
+	// 	}
+	// 	if startedSize {
+	// 		startedSize = true
+	// 		size = append(size, scanByte)
+	// 	} else {
+	// 		fileType = append(fileType, scanByte)
+	// 	}
+	// }
+
+	// // print data
+	// for scanner.Scan() {
+	// 	fmt.Print(scanner.Text())
+	// }
+
 }
 func (c *Catfile) Usage() string {
 	return "git cat-file : Prints the contents of a git object"
+}
+
+type HashObject struct {
+	fs          *flag.FlagSet
+	writeObject bool // if true write the object's output to .git/objects/<2char>/<remining char>
+	objName     string
+}
+
+func (h *HashObject) Initialize(args []string) error {
+	h.fs.BoolVar(&h.writeObject, "w", false, "write the object to the objects directory")
+	h.fs.Parse(args)
+	h.objName = args[len(args)-1]
+	return nil
+}
+
+func (h *HashObject) Run() error {
+	objDir := ".git/objects"
+	_, err := os.Stat(objDir)
+	if err != nil {
+		return fmt.Errorf("Could not find valid git repository, Did you git init?")
+	}
+	fileInfo, err := os.Stat(h.objName)
+	if err != nil {
+		return fmt.Errorf("Could not find the file: %s \n", h.objName)
+	}
+
+	// read the file
+	data, err := os.ReadFile(h.objName)
+	if err != nil {
+		return err
+	}
+
+	// header := []byte("blob" + strconv.Itoa(int(fileInfo.Size())) + string(0)) my version :)
+	headerStr := fmt.Sprintf("blob %d%c", fileInfo.Size(), 0)
+	header := []byte(headerStr)
+	finalData := append(header, data...)
+	hash := sha1.Sum(finalData)
+	hashStr := fmt.Sprintf("%x", hash)
+	if h.writeObject {
+		prefix := hashStr[:2]
+		filename := hashStr[2:]
+
+		err = os.Mkdir(filepath.Join(objDir, prefix), 0755)
+		if err != nil {
+			return err
+		}
+		var compressedData bytes.Buffer
+		w := zlib.NewWriter(&compressedData)
+		_, err = w.Write(finalData)
+		if err != nil {
+			return err
+		}
+
+		w.Close()
+		err = os.WriteFile(filepath.Join(objDir, prefix, filename), compressedData.Bytes(), 0744)
+
+		if err != nil {
+			return err
+		}
+	}
+
+	fmt.Print(hashStr)
+
+	return nil
+}
+
+func (h *HashObject) Usage() string {
+	return "git hash-object : Computes the SHA1 hash of an object"
 }
 
 func NewSubCommand(subComName string, args []string) (Subcommand, error) {
@@ -149,6 +238,13 @@ func NewSubCommand(subComName string, args []string) (Subcommand, error) {
 		}
 		catter.Initialize(args[1:])
 		return catter, nil
+
+	case "hash-object":
+		hasher := &HashObject{
+			fs: flag.NewFlagSet("hash-object", flag.ExitOnError),
+		}
+		hasher.Initialize(args[1:])
+		return hasher, nil
 
 	default:
 		return nil, fmt.Errorf("Unknown command %s\nUsage: git <command> <args>", subComName)
