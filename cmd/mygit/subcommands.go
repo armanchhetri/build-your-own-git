@@ -8,13 +8,11 @@ import (
 	"flag"
 	"fmt"
 	"io"
-
-	// "strconv"
-	"strings"
-
-	// "io"
 	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/codecrafters-io/git-starter-go/cmd/mygit/tree"
 )
 
 type Subcommand interface {
@@ -160,6 +158,7 @@ type HashObject struct {
 	objName     string
 }
 
+// Initialize flags and parse arguments
 func (h *HashObject) Initialize(args []string) error {
 	h.fs.BoolVar(&h.writeObject, "w", false, "write the object to the objects directory")
 	h.fs.Parse(args)
@@ -168,6 +167,9 @@ func (h *HashObject) Initialize(args []string) error {
 }
 
 func (h *HashObject) Run() error {
+	// Check for .git directory, read file, generate header, compute hash
+	// If writeObject is true, write the object to disk
+	// Print the hash
 	objDir := ".git/objects"
 	_, err := os.Stat(objDir)
 	if err != nil {
@@ -245,6 +247,11 @@ func NewSubCommand(subComName string, args []string) (Subcommand, error) {
 		}
 		hasher.Initialize(args[1:])
 		return hasher, nil
+
+	case "ls-tree":
+		lstreer := &tree.LsTree{Fs: flag.NewFlagSet("ls-tree", flag.ExitOnError)}
+		lstreer.Initialize(args[1:])
+		return lstreer, nil
 
 	default:
 		return nil, fmt.Errorf("Unknown command %s\nUsage: git <command> <args>", subComName)
