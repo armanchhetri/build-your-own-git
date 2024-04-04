@@ -3,13 +3,9 @@ package tree
 import (
 	"bufio"
 	"bytes"
-
-	// "bytes"
 	"compress/zlib"
 	"flag"
 	"fmt"
-
-	// "io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -26,13 +22,11 @@ type LsTree struct {
 	Fs       *flag.FlagSet
 	ObjName  string
 	NameOnly bool
-	// entry    []Tree
 }
 
 func (lstree *LsTree) Initialize(args []string) error {
 	lstree.Fs.BoolVar(&lstree.NameOnly, "name-only", false, "Name only")
 	err := lstree.Fs.Parse(args)
-
 	if err != nil {
 		return err
 	}
@@ -81,11 +75,9 @@ func (lstree *LsTree) Run() error {
 				scanner.Scan()
 				scanByte = scanner.Bytes()[0]
 				hash[i] = scanByte
-
 				i++
 			}
 			hashHex := fmt.Sprintf("%x", hash)
-
 			modeName := strings.SplitN(accumulator.String(), " ", 2)
 			mode := modeName[0]
 
@@ -108,5 +100,4 @@ func (lstree *LsTree) Run() error {
 	}
 
 	return nil
-
 }

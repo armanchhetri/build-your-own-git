@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/codecrafters-io/git-starter-go/cmd/mygit/tree"
+	"github.com/codecrafters-io/git-starter-go/cmd/mygit/treewriter"
 )
 
 type Subcommand interface {
@@ -26,7 +27,6 @@ type Init struct {
 }
 
 func (in *Init) Initialize(args []string) error {
-
 	return nil
 }
 
@@ -36,13 +36,13 @@ func (in *Init) Usage() string {
 
 func (in *Init) Run() error {
 	for _, dir := range []string{".git", ".git/objects", ".git/refs"} {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
 			fmt.Fprintf(os.Stderr, "Error creating directory: %s\n", err)
 		}
 	}
 
 	headFileContents := []byte("ref: refs/heads/main\n")
-	if err := os.WriteFile(".git/HEAD", headFileContents, 0644); err != nil {
+	if err := os.WriteFile(".git/HEAD", headFileContents, 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "Error writing file: %s\n", err)
 	}
 
@@ -74,7 +74,6 @@ func (c *Catfile) Initialize(args []string) error {
 		return fmt.Errorf("Invalid object name")
 	}
 	return nil
-
 }
 
 func (c *Catfile) Run() error {
@@ -146,8 +145,8 @@ func (c *Catfile) Run() error {
 	// for scanner.Scan() {
 	// 	fmt.Print(scanner.Text())
 	// }
-
 }
+
 func (c *Catfile) Usage() string {
 	return "git cat-file : Prints the contents of a git object"
 }
@@ -196,7 +195,7 @@ func (h *HashObject) Run() error {
 		prefix := hashStr[:2]
 		filename := hashStr[2:]
 
-		err = os.Mkdir(filepath.Join(objDir, prefix), 0755)
+		err = os.Mkdir(filepath.Join(objDir, prefix), 0o755)
 		if err != nil {
 			return err
 		}
@@ -208,8 +207,7 @@ func (h *HashObject) Run() error {
 		}
 
 		w.Close()
-		err = os.WriteFile(filepath.Join(objDir, prefix, filename), compressedData.Bytes(), 0744)
-
+		err = os.WriteFile(filepath.Join(objDir, prefix, filename), compressedData.Bytes(), 0o744)
 		if err != nil {
 			return err
 		}
@@ -253,6 +251,10 @@ func NewSubCommand(subComName string, args []string) (Subcommand, error) {
 		lstreer.Initialize(args[1:])
 		return lstreer, nil
 
+	case "write-tree":
+		writer := &treewriter.Treewriter{Fs: flag.NewFlagSet("write-tree", flag.ExitOnError)}
+		writer.Initialize(args[1:])
+		return writer, nil
 	default:
 		return nil, fmt.Errorf("Unknown command %s\nUsage: git <command> <args>", subComName)
 	}
