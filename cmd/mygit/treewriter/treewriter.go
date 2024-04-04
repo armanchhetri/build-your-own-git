@@ -38,7 +38,7 @@ func (t *Treewriter) Run() error {
 		return err
 	}
 	hash = hash[len(hash)-20:]
-	fmt.Printf("%x\n%d", hash, len(hash))
+	fmt.Printf("%x", hash)
 	return nil
 }
 
@@ -46,7 +46,6 @@ func createAndWriteObjects(path string) ([]byte, error) {
 	if strings.Contains(path, ".git") {
 		return []byte{}, nil
 	}
-	fmt.Printf("Creating object for %s\n", path)
 	files, err := os.ReadDir(path)
 	if err != nil {
 		return nil, err
@@ -93,7 +92,6 @@ func createBlobObject(path string, filename string) ([]byte, error) {
 }
 
 func writeObject(data []byte) ([]byte, error) {
-	fmt.Printf("Writing object for %s\n", string(data))
 	hash := sha1.Sum(data)
 	hashStr := fmt.Sprintf("%x", hash)
 	prefix := hashStr[:2]
