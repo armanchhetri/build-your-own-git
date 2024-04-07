@@ -261,8 +261,8 @@ func NewSubCommand(subComName string, args []string) (Subcommand, error) {
 		writer.Initialize(args[1:])
 		return writer, nil
 
-	case "write-commit":
-		commiter := &treecommit.Treecommit{Fs: flag.NewFlagSet("write-commit", flag.ExitOnError)}
+	case "commit-tree":
+		commiter := &treecommit.Treecommit{Fs: flag.NewFlagSet("commit-tree", flag.ExitOnError)}
 		commiter.Initialize(args[1:])
 		return commiter, nil
 
