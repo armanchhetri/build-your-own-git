@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/codecrafters-io/git-starter-go/cmd/mygit/tree"
+	"github.com/codecrafters-io/git-starter-go/cmd/mygit/treecommit"
 	"github.com/codecrafters-io/git-starter-go/cmd/mygit/treewriter"
 )
 
@@ -60,7 +61,7 @@ type Catfile struct {
 }
 
 func (c *Catfile) Initialize(args []string) error {
-	c.fs.BoolVar(&c.pprint, "p", true, "Pretty print")
+	c.fs.BoolVar(&c.pprint, "p", false, "Pretty print")
 	c.fs.BoolVar(&c.objType, "t", false, "Object type")
 	c.fs.BoolVar(&c.objSize, "s", false, "Object size")
 	c.fs.BoolVar(&c.exitWith0, "e", false, "Exit with 0")
@@ -106,7 +107,11 @@ func (c *Catfile) Run() error {
 	if c.exitWith0 {
 		os.Exit(0)
 	}
-	fmt.Print(body)
+	if c.pprint {
+		fmt.Print(body)
+		return nil
+	}
+	fmt.Print(dataStr)
 	r.Close()
 
 	return nil
@@ -255,6 +260,12 @@ func NewSubCommand(subComName string, args []string) (Subcommand, error) {
 		writer := &treewriter.Treewriter{Fs: flag.NewFlagSet("write-tree", flag.ExitOnError)}
 		writer.Initialize(args[1:])
 		return writer, nil
+
+	case "write-commit":
+		commiter := &treecommit.Treecommit{Fs: flag.NewFlagSet("write-commit", flag.ExitOnError)}
+		commiter.Initialize(args[1:])
+		return commiter, nil
+
 	default:
 		return nil, fmt.Errorf("Unknown command %s\nUsage: git <command> <args>", subComName)
 	}

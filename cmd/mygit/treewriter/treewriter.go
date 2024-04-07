@@ -65,7 +65,7 @@ func createAndWriteObjects(path string) ([]byte, error) {
 	}
 	treeHdrStr := fmt.Sprintf("tree %d\x00", len(treeContents))
 	treeContents = append([]byte(treeHdrStr), treeContents...)
-	hash, err := writeObject(treeContents)
+	hash, err := WriteObject(treeContents)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +80,7 @@ func createBlobObject(path string, filename string) ([]byte, error) {
 
 	header := fmt.Sprintf("blob %d\x00", len(data))
 	finalData := append([]byte(header), data...)
-	hash, err := writeObject(finalData)
+	hash, err := WriteObject(finalData)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +91,7 @@ func createBlobObject(path string, filename string) ([]byte, error) {
 	return treeContent, nil
 }
 
-func writeObject(data []byte) ([]byte, error) {
+func WriteObject(data []byte) ([]byte, error) {
 	hash := sha1.Sum(data)
 	hashStr := fmt.Sprintf("%x", hash)
 	prefix := hashStr[:2]
