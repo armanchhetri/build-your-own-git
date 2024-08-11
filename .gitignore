@@ -1,1 +1,5 @@
 test_dir
+test_dir*
+0098want 13d0058ebb4a79253042a01c390fba8074dadf40 multi_ack_
+23:13:54.673722 http.c:833              => Send data: detailed no-done side-band-64k thin-pack ofs-delta deepen-si
+23:13:54.673726 http.c:833              => Send data: nce deepen-not agent=git/2.43.0.00000009done

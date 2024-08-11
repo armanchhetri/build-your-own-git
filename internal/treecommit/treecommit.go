@@ -4,7 +4,7 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/codecrafters-io/git-starter-go/cmd/mygit/treewriter"
+	"github.com/codecrafters-io/git-starter-go/internal/treewriter"
 )
 
 type Treecommit struct {

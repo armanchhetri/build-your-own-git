@@ -1,7 +1,6 @@
-package main
+package general
 
 import (
-	// "bufio"
 	"bytes"
 	"compress/zlib"
 	"crypto/sha1"
@@ -11,48 +10,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/codecrafters-io/git-starter-go/cmd/mygit/tree"
-	"github.com/codecrafters-io/git-starter-go/cmd/mygit/treecommit"
-	"github.com/codecrafters-io/git-starter-go/cmd/mygit/treewriter"
 )
 
-type Subcommand interface {
-	Run() error
-	Initialize(args []string) error
-	Usage() string
-}
-
-type Init struct {
-	fs *flag.FlagSet
-}
-
-func (in *Init) Initialize(args []string) error {
-	return nil
-}
-
-func (in *Init) Usage() string {
-	return "git init : Initializes an empty git repository in the current directory"
-}
-
-func (in *Init) Run() error {
-	for _, dir := range []string{".git", ".git/objects", ".git/refs"} {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			fmt.Fprintf(os.Stderr, "Error creating directory: %s\n", err)
-		}
-	}
-
-	headFileContents := []byte("ref: refs/heads/main\n")
-	if err := os.WriteFile(".git/HEAD", headFileContents, 0o644); err != nil {
-		fmt.Fprintf(os.Stderr, "Error writing file: %s\n", err)
-	}
-
-	fmt.Println("Initialized git directory")
-	return nil
-}
-
 type Catfile struct {
-	fs        *flag.FlagSet
+	Fs        *flag.FlagSet
 	objName   string
 	pprint    bool
 	objType   bool
@@ -61,11 +22,11 @@ type Catfile struct {
 }
 
 func (c *Catfile) Initialize(args []string) error {
-	c.fs.BoolVar(&c.pprint, "p", false, "Pretty print")
-	c.fs.BoolVar(&c.objType, "t", false, "Object type")
-	c.fs.BoolVar(&c.objSize, "s", false, "Object size")
-	c.fs.BoolVar(&c.exitWith0, "e", false, "Exit with 0")
-	err := c.fs.Parse(args)
+	c.Fs.BoolVar(&c.pprint, "p", false, "Pretty print")
+	c.Fs.BoolVar(&c.objType, "t", false, "Object type")
+	c.Fs.BoolVar(&c.objSize, "s", false, "Object size")
+	c.Fs.BoolVar(&c.exitWith0, "e", false, "Exit with 0")
+	err := c.Fs.Parse(args)
 	if err != nil {
 		return err
 	}
@@ -157,15 +118,15 @@ func (c *Catfile) Usage() string {
 }
 
 type HashObject struct {
-	fs          *flag.FlagSet
+	Fs          *flag.FlagSet
 	writeObject bool // if true write the object's output to .git/objects/<2char>/<remining char>
 	objName     string
 }
 
 // Initialize flags and parse arguments
 func (h *HashObject) Initialize(args []string) error {
-	h.fs.BoolVar(&h.writeObject, "w", false, "write the object to the objects directory")
-	h.fs.Parse(args)
+	h.Fs.BoolVar(&h.writeObject, "w", false, "write the object to the objects directory")
+	h.Fs.Parse(args)
 	h.objName = args[len(args)-1]
 	return nil
 }
@@ -227,46 +188,30 @@ func (h *HashObject) Usage() string {
 	return "git hash-object : Computes the SHA1 hash of an object"
 }
 
-func NewSubCommand(subComName string, args []string) (Subcommand, error) {
-	switch subComName {
-	case "init":
-		initer := &Init{
-			fs: flag.NewFlagSet("init", flag.ExitOnError),
+type Init struct {
+	Fs *flag.FlagSet
+}
+
+func (in *Init) Initialize(args []string) error {
+	return nil
+}
+
+func (in *Init) Usage() string {
+	return "git init : Initializes an empty git repository in the current directory"
+}
+
+func (in *Init) Run() error {
+	for _, dir := range []string{".git", ".git/objects", ".git/reFs"} {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
+			fmt.Fprintf(os.Stderr, "Error creating directory: %s\n", err)
 		}
-		if initer.Initialize(args) != nil {
-			return nil, fmt.Errorf("Error initializing command")
-		}
-		return initer, nil
-	case "cat-file":
-		catter := &Catfile{
-			fs: flag.NewFlagSet("cat-file", flag.ExitOnError),
-		}
-		catter.Initialize(args[1:])
-		return catter, nil
-
-	case "hash-object":
-		hasher := &HashObject{
-			fs: flag.NewFlagSet("hash-object", flag.ExitOnError),
-		}
-		hasher.Initialize(args[1:])
-		return hasher, nil
-
-	case "ls-tree":
-		lstreer := &tree.LsTree{Fs: flag.NewFlagSet("ls-tree", flag.ExitOnError)}
-		lstreer.Initialize(args[1:])
-		return lstreer, nil
-
-	case "write-tree":
-		writer := &treewriter.Treewriter{Fs: flag.NewFlagSet("write-tree", flag.ExitOnError)}
-		writer.Initialize(args[1:])
-		return writer, nil
-
-	case "commit-tree":
-		commiter := &treecommit.Treecommit{Fs: flag.NewFlagSet("commit-tree", flag.ExitOnError)}
-		commiter.Initialize(args[1:])
-		return commiter, nil
-
-	default:
-		return nil, fmt.Errorf("Unknown command %s\nUsage: git <command> <args>", subComName)
 	}
+
+	headFileContents := []byte("ref: reFs/heads/main\n")
+	if err := os.WriteFile(".git/HEAD", headFileContents, 0o644); err != nil {
+		fmt.Fprintf(os.Stderr, "Error writing file: %s\n", err)
+	}
+
+	fmt.Println("Initialized git directory")
+	return nil
 }

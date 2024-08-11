@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"compress/zlib"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -25,6 +26,9 @@ type LsTree struct {
 }
 
 func (lstree *LsTree) Initialize(args []string) error {
+	if len(args) != 2 {
+		return errors.New("Invalid arguments")
+	}
 	lstree.Fs.BoolVar(&lstree.NameOnly, "name-only", false, "Name only")
 	err := lstree.Fs.Parse(args)
 	if err != nil {

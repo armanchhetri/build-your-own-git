@@ -1,60 +1,56 @@
 [![progress-banner](https://backend.codecrafters.io/progress/git/10c8f19f-00b9-4cb1-9faf-0e5480b3838b)](https://app.codecrafters.io/users/codecrafters-bot?r=2qF)
 
-This is a starting point for Go solutions to the
+This is a solution for
 ["Build Your Own Git" Challenge](https://codecrafters.io/challenges/git).
 
 In this challenge, you'll build a small Git implementation that's capable of
-initializing a repository, creating commits and cloning a public repository.
+initializing a repository, creating commits and cloning(clone is WIP) a public repository.
 Along the way we'll learn about the `.git` directory, Git objects (blobs,
 commits, trees etc.), Git's transfer protocols and more.
 
 **Note**: If you're viewing this repo on GitHub, head over to
 [codecrafters.io](https://codecrafters.io) to try the challenge.
 
-# Passing the first stage
 
-The entry point for your Git implementation is in `cmd/mygit/main.go`. Study and
-uncomment the relevant code, and push your changes to pass the first stage:
-
+It allows only the following commands:
+### Init
+Initializes an empty .git directory in the current folder
 ```sh
-git add .
-git commit -m "pass 1st stage" # any msg
-git push origin master
+./your_git.sh init
 ```
 
-That's all!
-
-# Stage 2 & beyond
-
-Note: This section is for stages 2 and beyond.
-
-1. Ensure you have `go` installed locally
-1. Run `./your_git.sh` to run your Git implementation, which is implemented in
-   `cmd/mygit/main.go`.
-1. Commit your changes and run `git push origin master` to submit your solution
-   to CodeCrafters. Test output will be streamed to your terminal.
-
-# Testing locally
-
-The `your_git.sh` script is expected to operate on the `.git` folder inside the
-current working directory. If you're running this inside the root of this
-repository, you might end up accidentally damaging your repository's `.git`
-folder.
-
-We suggest executing `your_git.sh` in a different folder when testing locally.
-For example:
-
+### Catfile
+Displays the content of an object given it's hash
 ```sh
-mkdir -p /tmp/testing && cd /tmp/testing
-/path/to/your/repo/your_git.sh init
+./your_git.sh cat-file <object_hash>
 ```
 
-To make this easier to type out, you could add a
-[shell alias](https://shapeshed.com/unix-alias/):
-
+### Hash-Object
+Creates the hash of the given file
 ```sh
-alias mygit=/path/to/your/repo/your_git.sh
+./your_git.sh hash-object <file_name>
+```
 
-mkdir -p /tmp/testing && cd /tmp/testing
-mygit init
+### Write-Tree/add
+Adds the current state of changes to git
+```sh
+./your_git.sh write-tree
+```
+
+### Commit-Tree/Commit
+Commits the tree object given tree hash
+```sh
+./your_git.sh commit-tree <tree_hash>
+```
+
+### Ls-Tree
+Displays the content of Tree object
+```sh
+./your_git.sh ls-tree <tree_hash>
+```
+
+### Clone
+Clones from the given https link(incomplete)
+```sh
+./your_git.sh clone <repo_link>
 ```
